@@ -1,0 +1,73 @@
+/* style.css - Visual styles and animations for Caesar Cipher wheel */
+
+#innerWheelGroup {
+  transform-origin: 180px 180px;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Inner letters turn back by the same amount as the disk so they stay upright.
+   Same duration and easing as #innerWheelGroup, so both move in sync. */
+.inner-letter-badge {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.wheel-badge {
+  cursor: pointer;
+}
+
+.wheel-badge:focus {
+  outline: none;
+}
+
+.wheel-badge:focus-visible circle {
+  stroke-width: 2.5px !important;
+  stroke: #D97706 !important;
+}
+
+/* Scale and dim live on a child group, so they never clash with the rotation above */
+.badge-face {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.badge-face.scaled {
+  transform: scale(1.15);
+}
+
+.badge-face.dimmed {
+  opacity: 0.35;
+}
+
+.no-transition {
+  transition: none !important;
+}
+
+#innerDragHandle {
+  cursor: grab;
+  touch-action: none;
+}
+
+#innerDragHandle:focus {
+  outline: none;
+}
+
+#innerDragHandle:focus-visible circle {
+  stroke: #D97706 !important;
+  stroke-width: 2px !important;
+}
+
+#innerDragHandle:active,
+#innerDragHandle.grabbing {
+  cursor: grabbing;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #innerWheelGroup,
+  .inner-letter-badge,
+  .badge-face {
+    transition: none !important;
+  }
+}

@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Caesar Cipher | Information Security</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['"IBM Plex Sans"', 'sans-serif'],
+              mono: ['"IBM Plex Mono"', 'monospace'],
+            },
+            colors: {
+              page: '#EEF1F5',
+              ink: '#14213D',
+              tealaccent: '#0F766E',
+              tealhover: '#0D655E',
+              amberaccent: '#D97706',
+              errorred: '#B91C1C',
+              successgreen: '#15803D',
+            },
+          },
+        },
+      };
+    </script>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body class="min-h-screen flex flex-col bg-page text-ink font-sans">
+    <!-- Academic Header / Navbar -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+      <div class="max-w-6xl mx-auto px-4 py-2.5 sm:py-3 flex items-center justify-between">
+        <!-- Left: Logo & Academic Title -->
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-md bg-tealaccent/10 border border-tealaccent/30 flex items-center justify-center shrink-0" aria-hidden="true">
+            <svg class="w-5 h-5 text-tealaccent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="9" />
+              <circle cx="12" cy="12" r="5" stroke-dasharray="2 2" />
+              <circle cx="12" cy="12" r="1.5" fill="currentColor" />
+            </svg>
+          </div>
+          <div class="leading-tight">
+            <h1 class="text-sm sm:text-base font-bold text-ink">Caesar Cipher</h1>
+            <p class="hidden sm:block text-[11px] text-slate-500 mt-0.5">Information Security</p>
+          </div>
+        </div>
+
+        <!-- Right: Institution & Student Info -->
+        <div class="flex items-center gap-3">
+          <!-- Mobile (under sm): Acronym only to prevent wrapping -->
+          <span class="sm:hidden text-xs font-semibold text-slate-700 font-mono">UOB</span>
+
+          <!-- Tablet (sm to md): Institution name only -->
+          <span class="hidden sm:block md:hidden text-xs font-medium text-slate-700">University of Balochistan</span>
+
+          <!-- Desktop (md+): Institution + Student Name with thin vertical divider -->
+          <div class="hidden md:flex items-center gap-3 border-l border-slate-200 pl-3.5">
+            <div class="text-right leading-tight">
+              <div class="text-xs font-medium text-slate-800">University of Balochistan</div>
+              <div class="text-[11px] text-slate-500 mt-0.5">Muhammad Yahya</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Workspace Container -->
+    <main class="flex-1 max-w-6xl w-full mx-auto px-4 py-5 sm:py-6 space-y-5 sm:space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-start">
+        <!-- Input & Controls Column (7 cols on desktop) -->
+        <div class="lg:col-span-7 bg-white rounded-lg border border-slate-200 p-4 sm:p-5 shadow-sm space-y-4">
+          <div>
+            <label for="messageInput" class="block text-xs font-semibold text-slate-700 mb-1">
+              Message <span class="font-normal text-slate-500">(uppercase A&ndash;Z only, no spaces or lowercase)</span>
+            </label>
+            <input
+              type="text"
+              id="messageInput"
+              autocomplete="off"
+              spellcheck="false"
+              value="ATTACKATDAWN"
+              class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded font-mono text-sm text-ink focus:bg-white focus:outline-none focus:ring-2 focus:ring-tealaccent"
+              placeholder="Enter message (e.g. ATTACKATDAWN)"
+            />
+            <div id="messageError" role="alert" class="hidden mt-1.5 p-2 rounded bg-red-50 border border-red-200 text-errorred text-xs"></div>
+          </div>
+
+          <div class="pt-3 border-t border-slate-100 space-y-2">
+            <div class="flex items-center justify-between">
+              <label for="keyInput" class="text-xs font-semibold text-slate-700">
+                Shift Key <span class="font-mono text-tealaccent">k</span> &isin; [0, 25]
+              </label>
+              <div class="flex items-center gap-1.5">
+                <span class="text-xs font-mono text-slate-500">k =</span>
+                <input
+                  type="text"
+                  id="keyInput"
+                  value="3"
+                  class="w-16 px-2 py-1 text-center font-mono font-bold text-sm bg-slate-50 border border-slate-300 rounded focus:bg-white focus:outline-none focus:ring-2 focus:ring-tealaccent text-ink"
+                />
+              </div>
+            </div>
+            <input
+              type="range"
+              id="keySlider"
+              min="0"
+              max="25"
+              value="3"
+              aria-label="Shift key slider from 0 to 25"
+              class="w-full h-2 bg-slate-200 rounded cursor-pointer accent-tealaccent"
+            />
+            <div id="keyError" role="alert" class="hidden p-2 rounded bg-red-50 border border-red-200 text-errorred text-xs"></div>
+          </div>
+
+          <div class="pt-3 border-t border-slate-100 flex items-center gap-3">
+            <button
+              type="button"
+              id="encryptBtn"
+              class="flex-1 px-4 py-2 bg-tealaccent hover:bg-tealhover text-white text-xs font-medium rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-tealaccent disabled:opacity-40 transition"
+            >
+              Encrypt
+            </button>
+            <button
+              type="button"
+              id="decryptBtn"
+              class="flex-1 px-4 py-2 bg-white hover:bg-slate-50 border border-slate-300 text-ink text-xs font-medium rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-tealaccent disabled:opacity-40 transition"
+            >
+              Decrypt
+            </button>
+          </div>
+
+          <!-- Result Area -->
+          <div id="resultSection" class="hidden pt-3 border-t border-slate-100 space-y-2">
+            <div class="flex items-center justify-between">
+              <span id="resultType" class="text-xs font-semibold text-slate-700">Result</span>
+              <button
+                type="button"
+                id="copyBtn"
+                class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded text-xs text-slate-700 transition"
+              >
+                Copy
+              </button>
+            </div>
+            <div
+              aria-live="polite"
+              class="bg-slate-900 rounded p-3 text-emerald-400 font-mono text-base font-semibold tracking-wider break-all select-all"
+            >
+              <span id="resultText"></span>
+            </div>
+          </div>
+
+          <!-- Round-Trip Verification Indicator -->
+          <div id="roundTripBox" class="hidden">
+            <span id="roundTripText"></span>
+          </div>
+        </div>
+
+        <!-- Visual Cipher Wheel Column (5 cols on desktop, compact height) -->
+        <div class="lg:col-span-5 bg-white rounded-lg border border-slate-200 p-4 sm:p-5 shadow-sm flex flex-col items-center">
+          <div class="w-full flex items-center justify-between pb-2 border-b border-slate-100 mb-1.5">
+            <h2 class="text-xs font-semibold text-slate-700">Visual Cipher Wheel</h2>
+            <div class="text-[11px] font-mono text-slate-500">Outer: P &bull; Inner: C</div>
+          </div>
+
+          <!-- Proportional, comfortable wheel sizing (max 320px desktop, 280px mobile) -->
+          <div class="relative w-full max-w-[280px] sm:max-w-[320px] aspect-square flex items-center justify-center my-0.5">
+            <svg
+              id="cipherWheelSvg"
+              viewBox="0 0 360 360"
+              class="w-full h-full select-none"
+              role="img"
+              aria-label="Concentric Caesar cipher wheel showing plaintext and ciphertext alignment"
+            >
+              <defs>
+                <radialGradient id="outerDiskGrad" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stop-color="#FFFFFF" />
+                  <stop offset="85%" stop-color="#F0FDFA" />
+                  <stop offset="100%" stop-color="#E6F7F5" />
+                </radialGradient>
+                <radialGradient id="innerDiskGrad" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stop-color="#FFFFFF" />
+                  <stop offset="75%" stop-color="#F8FAFC" />
+                  <stop offset="100%" stop-color="#E2E8F0" />
+                </radialGradient>
+                <filter id="wheelShadow" x="-10%" y="-10%" width="120%" height="120%">
+                  <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0F172A" flood-opacity="0.12" />
+                </filter>
+                <filter id="hubShadow" x="-15%" y="-15%" width="130%" height="130%">
+                  <feDropShadow dx="0" dy="1.5" stdDeviation="2.5" flood-color="#0F172A" flood-opacity="0.15" />
+                </filter>
+              </defs>
+
+              <!-- Outer Fixed Instrument Disk -->
+              <circle cx="180" cy="180" r="174" fill="url(#outerDiskGrad)" stroke="#0F766E" stroke-width="2.5" />
+              <circle cx="180" cy="180" r="171" fill="none" stroke="#CCFBF1" stroke-width="1" />
+              <g id="outerTicksGroup"></g>
+              <g id="outerWheelGroup"></g>
+              <circle cx="180" cy="180" r="134" fill="none" stroke="#0F766E" stroke-width="1.5" stroke-opacity="0.35" />
+
+              <!-- 12 o'clock Amber Pointer Marker -->
+              <path d="M 180 20 L 174 10 L 186 10 Z" fill="#D97706" />
+
+              <!-- Inner Rotating Instrument Disk -->
+              <g id="innerWheelGroup">
+                <g id="innerDragHandle" tabindex="0" role="slider" aria-label="Rotate cipher disk key" aria-valuemin="0" aria-valuemax="25" aria-valuenow="3">
+                  <circle cx="180" cy="180" r="132" fill="url(#innerDiskGrad)" stroke="#94A3B8" stroke-width="1.5" filter="url(#wheelShadow)" />
+                  <g id="innerTicksGroup"></g>
+                  <circle cx="180" cy="180" r="94" fill="none" stroke="#CBD5E1" stroke-width="1" />
+                  <g id="innerLettersGroup"></g>
+                </g>
+              </g>
+
+              <!-- Center Hub Disk -->
+              <circle cx="180" cy="180" r="76" fill="#FFFFFF" stroke="#0F766E" stroke-width="2" filter="url(#hubShadow)" />
+              <circle cx="180" cy="180" r="68" fill="#F0FDFA" />
+              
+              <!-- Dynamic Shift Arc -->
+              <path id="hubShiftArc" fill="none" stroke="#0F766E" stroke-width="3.5" stroke-linecap="round"></path>
+              
+              <!-- Hub 12 o'clock indicator -->
+              <path d="M 180 114 L 176 122 L 184 122 Z" fill="#0F766E" />
+              <text id="hubKeyText" x="180" y="165" text-anchor="middle" font-family="'IBM Plex Mono', monospace" font-size="24" font-weight="700" fill="#14213D">k = 3</text>
+              <text id="hubMappingText" x="180" y="190" text-anchor="middle" font-family="'IBM Plex Mono', monospace" font-size="13" font-weight="600" fill="#0F766E">A &rarr; D</text>
+
+              <!-- Pair Connecting Alignment Line -->
+              <line id="linkLine" stroke="#D97706" stroke-width="2" stroke-dasharray="3,3" opacity="0" pointer-events="none"></line>
+            </svg>
+          </div>
+
+          <!-- Tooltip Box / Live Pair Inspector -->
+          <div id="wheelPairText" class="w-full text-[11px] sm:text-xs font-mono text-slate-700 font-medium text-center mt-2 min-h-[1.5rem] px-2 py-0.5 bg-slate-50 border border-slate-200 rounded flex items-center justify-center">
+            Drag the inner ring or hover any letter to inspect alignment
+          </div>
+
+          <!-- Legend & Interaction Hint -->
+          <div class="mt-2 flex flex-wrap items-center justify-center gap-3 text-[11px] font-sans text-slate-600">
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amberaccent"></span> Input letter</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-tealaccent"></span> Output letter</span>
+          </div>
+          <p class="text-[10px] sm:text-[11px] text-slate-500 text-center mt-0.5">Drag the inner ring to set the key, or hover/focus any letter.</p>
+        </div>
+      </div>
+
+      <!-- Step-by-Step Modular Arithmetic Table -->
+      <section id="stepsSection" class="hidden bg-white rounded-lg border border-slate-200 p-4 sm:p-5 shadow-sm space-y-3">
+        <h2 class="text-xs font-semibold text-slate-700">Step-by-Step Modular Arithmetic</h2>
+        <div class="overflow-x-auto border border-slate-200 rounded">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="bg-slate-100 border-b border-slate-200 text-slate-700 font-mono">
+                <th class="py-2 px-3 text-center w-12">#</th>
+                <th class="py-2 px-3 text-center w-16">Input</th>
+                <th class="py-2 px-3 text-center w-20">Pos</th>
+                <th class="py-2 px-3 text-center w-16">Key k</th>
+                <th class="py-2 px-4">Formula &amp; Calculation</th>
+                <th class="py-2 px-3 text-center w-20">Result Pos</th>
+                <th class="py-2 px-3 text-center w-16">Output</th>
+              </tr>
+            </thead>
+            <tbody id="stepsTableBody" class="divide-y divide-slate-100 font-mono"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Automated Test Suite Panel (Current Input + Fixed Tests) -->
+      <section class="bg-white rounded-lg border border-slate-200 p-4 sm:p-5 shadow-sm space-y-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <h2 class="text-xs font-semibold text-slate-700">Automated Test Cases</h2>
+            <span id="testSummaryBadge" class="px-2 py-0.5 rounded text-xs font-mono font-bold bg-slate-100 text-slate-700">Running...</span>
+          </div>
+          <button
+            type="button"
+            id="runAllTestsBtn"
+            class="px-3 py-1 bg-tealaccent hover:bg-tealhover text-white text-xs font-medium rounded shadow-sm transition"
+          >
+            Run All Tests
+          </button>
+        </div>
+
+        <div class="space-y-3">
+          <div>
+            <h3 class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1 font-mono">Your Current Input</h3>
+            <div class="overflow-x-auto border border-slate-200 rounded">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead class="bg-slate-100 border-b border-slate-200 text-slate-700 font-mono">
+                  <tr>
+                    <th class="py-1.5 px-3">Test</th>
+                    <th class="py-1.5 px-3">Expected</th>
+                    <th class="py-1.5 px-3">Got</th>
+                    <th class="py-1.5 px-3 text-center w-20">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="currentTestsBody" class="divide-y divide-slate-100 font-mono"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div>
+            <h3 class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1 font-mono">Fixed Test Cases (19)</h3>
+            <div class="overflow-x-auto border border-slate-200 rounded max-h-60 overflow-y-auto">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead class="sticky top-0 bg-slate-100 border-b border-slate-200 text-slate-700 font-mono">
+                  <tr>
+                    <th class="py-1.5 px-3">Test</th>
+                    <th class="py-1.5 px-3">Expected</th>
+                    <th class="py-1.5 px-3">Got</th>
+                    <th class="py-1.5 px-3 text-center w-20">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="fixedTestsBody" class="divide-y divide-slate-100 font-mono"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Notes for the Report Accordion -->
+      <section class="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden text-xs">
+        <button
+          type="button"
+          id="toggleReportBtn"
+          aria-expanded="false"
+          class="w-full p-4 text-left font-semibold text-slate-700 flex items-center justify-between hover:bg-slate-50 transition"
+        >
+          <span>Notes for the Report (Academic Explanations)</span>
+          <span id="reportArrow" class="text-slate-400 font-mono">&darr;</span>
+        </button>
+        <div id="reportNotes" class="hidden p-4 border-t border-slate-100 space-y-3 text-slate-600 leading-relaxed">
+          <div class="p-3 bg-slate-50 rounded border border-slate-200 space-y-1">
+            <h3 class="font-bold text-ink">1. Strict Validation vs. Silent Coercion</h3>
+            <p>
+              In secure software design, silent input modification (e.g. converting lowercase or stripping spaces) can alter the intended message without caller consent and invalidate message integrity. Rejecting invalid characters with their exact position ensures fail-fast validation.
+            </p>
+          </div>
+          <div class="p-3 bg-amber-50 rounded border border-amber-200 space-y-1 text-amber-950">
+            <h3 class="font-bold text-amber-900">2. Why &ldquo;+ 26&rdquo; is Required in Decryption</h3>
+            <p>
+              JavaScript's <code class="font-mono bg-white px-1 rounded">%</code> operator calculates truncated division remainder rather than mathematical modulo. For example, decrypting B (pos 1) with k=3 gives 1 - 3 = -2. In JavaScript, <code class="font-mono bg-white px-1 rounded">-2 % 26 = -2</code>. Since -2 &equiv; 24 (mod 26), adding 26 ensures the operand is positive before applying the modulo (<code class="font-mono bg-white px-1 rounded">(1 - 3 + 26) % 26 = 24</code>, which is Y).
+            </p>
+          </div>
+          <div class="p-3 bg-slate-50 rounded border border-slate-200 space-y-1">
+            <h3 class="font-bold text-ink">3. Educational Purpose and Vulnerability</h3>
+            <p>
+              With only 26 possible keys (|K| = 26), the Caesar cipher offers zero security against ciphertext-only attacks. An adversary can test all 26 shifts in microseconds or analyze single-letter frequency distribution.
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Standard Website Footer -->
+    <footer class="bg-white border-t border-slate-200 py-5 mt-8">
+      <div class="max-w-6xl mx-auto px-4 text-center text-xs text-slate-500 font-sans">
+        &copy; 2026 Muhammad Yahya. All rights reserved.
+      </div>
+    </footer>
+
+    <script src="cipher.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
